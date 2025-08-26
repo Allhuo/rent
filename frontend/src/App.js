@@ -17,6 +17,13 @@ function App() {
   const [advice, setAdvice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackData, setFeedbackData] = useState({
+    success: 'success',
+    actual_price: '',
+    feedback_text: '',
+    rating: 5
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,6 +47,7 @@ function App() {
 
       const response = await axios.post('/negotiate', requestData);
       setAdvice(response.data);
+      setShowFeedback(false); // 重置反馈表单
     } catch (err) {
       setError(err.response?.data?.detail || '获取建议失败，请稍后重试');
     } finally {
@@ -50,6 +58,42 @@ function App() {
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    if (!advice || !advice.session_id) return;
+
+    try {
+      const feedbackRequest = {
+        session_id: advice.session_id,
+        success: feedbackData.success,
+        actual_price: feedbackData.actual_price ? parseInt(feedbackData.actual_price) : null,
+        feedback_text: feedbackData.feedback_text || null,
+        rating: parseInt(feedbackData.rating)
+      };
+
+      await axios.post('/feedback', feedbackRequest);
+      alert('谢谢您的反馈！这将帮助我们改进服务。');
+      setShowFeedback(false);
+      
+      // 重置反馈表单
+      setFeedbackData({
+        success: 'success',
+        actual_price: '',
+        feedback_text: '',
+        rating: 5
+      });
+    } catch (err) {
+      alert('提交反馈失败，请稍后重试');
+    }
+  };
+
+  const handleFeedbackChange = (e) => {
+    setFeedbackData({
+      ...feedbackData,
       [e.target.name]: e.target.value
     });
   };
@@ -257,6 +301,103 @@ function App() {
                   <h3 className="font-semibold text-gray-800 mb-2">📈 市场洞察</h3>
                   <p className="text-gray-700">{advice.market_insights}</p>
                 </div>
+
+                {!showFeedback ? (
+                  <div className="text-center">
+                    <button
+                      onClick={() => setShowFeedback(true)}
+                      className="bg-blue-100 text-blue-700 px-6 py-2 rounded-md hover:bg-blue-200 transition-colors"
+                    >
+                      💬 分享您的谈判结果
+                    </button>
+                    <p className="text-sm text-gray-500 mt-2">
+                      您的反馈将帮助我们改进AI建议的准确性
+                    </p>
+                  </div>
+                ) : (
+                  <div className="border border-blue-200 bg-blue-50 p-4 rounded-md">
+                    <h3 className="font-semibold text-blue-800 mb-3">💬 谈判结果反馈</h3>
+                    <form onSubmit={handleFeedbackSubmit} className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          谈判结果
+                        </label>
+                        <select
+                          name="success"
+                          value={feedbackData.success}
+                          onChange={handleFeedbackChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="success">成功砍价</option>
+                          <option value="partial">部分成功</option>
+                          <option value="failed">砍价失败</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          实际成交价格 (元/月)
+                        </label>
+                        <input
+                          type="number"
+                          name="actual_price"
+                          value={feedbackData.actual_price}
+                          onChange={handleFeedbackChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="如果成交，请填写实际价格"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          评分 (1-5分)
+                        </label>
+                        <select
+                          name="rating"
+                          value={feedbackData.rating}
+                          onChange={handleFeedbackChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="5">⭐⭐⭐⭐⭐ 非常有用</option>
+                          <option value="4">⭐⭐⭐⭐ 比较有用</option>
+                          <option value="3">⭐⭐⭐ 一般</option>
+                          <option value="2">⭐⭐ 不太有用</option>
+                          <option value="1">⭐ 没有帮助</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          补充说明 (可选)
+                        </label>
+                        <textarea
+                          name="feedback_text"
+                          value={feedbackData.feedback_text}
+                          onChange={handleFeedbackChange}
+                          rows="2"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="请分享您的谈判经历或对AI建议的看法..."
+                        />
+                      </div>
+
+                      <div className="flex space-x-3">
+                        <button
+                          type="submit"
+                          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          提交反馈
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowFeedback(false)}
+                          className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        >
+                          取消
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center text-gray-500 py-12">

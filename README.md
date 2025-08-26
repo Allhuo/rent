@@ -15,7 +15,7 @@
 **后端**:
 - Python + FastAPI
 - Google Gemini API
-- PostgreSQL数据库
+- SQLite数据库 (测试环境)
 
 **前端**:
 - React + TypeScript
@@ -30,9 +30,11 @@
 - [ ] 谈判话术生成
 
 ### 进阶功能
+- [x] 数据库存储谈判记录
+- [x] 用户反馈收集系统
+- [x] 基于历史数据的市场分析
+- [x] 统计数据展示
 - [ ] 实时对话指导
-- [ ] 成功案例数据库
-- [ ] 区域行情分析
 - [ ] 房东心理分析
 
 ## 快速开始
@@ -53,7 +55,7 @@ PORT=3088 npm start
 
 ```bash
 GEMINI_API_KEY=your_gemini_api_key
-DATABASE_URL=postgresql://user:pass@localhost/rent_db
+DATABASE_URL=sqlite:///./rent_negotiator.db  # SQLite数据库文件
 ```
 
 ## 端口配置
