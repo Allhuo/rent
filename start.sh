@@ -16,7 +16,7 @@ cd backend
 python -m venv venv 2>/dev/null || true
 source venv/bin/activate || source venv/Scripts/activate  # Windows兼容
 pip install -r requirements.txt
-uvicorn main:app --reload --host 0.0.0.0 --port 8000 &
+uvicorn main:app --reload --host 0.0.0.0 --port 8088 &
 BACKEND_PID=$!
 
 # 等待后端启动
@@ -35,9 +35,9 @@ fi
 
 echo "✅ 前端和后端已启动！"
 echo ""
-echo "🌐 前端地址: http://localhost:3000"
-echo "🔗 后端API: http://localhost:8000"
-echo "📚 API文档: http://localhost:8000/docs"
+echo "🌐 前端地址: http://localhost:3088"
+echo "🔗 后端API: http://localhost:8088"
+echo "📚 API文档: http://localhost:8088/docs"
 echo ""
 echo "按 Ctrl+C 停止所有服务"
 

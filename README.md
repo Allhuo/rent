@@ -41,12 +41,12 @@
 # 后端
 cd backend
 pip install -r requirements.txt
-uvicorn main:app --reload
+uvicorn main:app --reload --port 8088
 
 # 前端
 cd frontend  
 npm install
-npm start
+PORT=3088 npm start
 ```
 
 ## 环境变量
@@ -55,3 +55,8 @@ npm start
 GEMINI_API_KEY=your_gemini_api_key
 DATABASE_URL=postgresql://user:pass@localhost/rent_db
 ```
+
+## 端口配置
+
+- 后端API: 8088
+- 前端界面: 3088

@@ -7,7 +7,7 @@ import requests
 import json
 from pprint import pprint
 
-API_BASE = "http://localhost:8000"
+API_BASE = "http://localhost:8088"
 
 def test_health():
     """测试健康检查接口"""
@@ -59,7 +59,7 @@ def test_negotiation():
             
     except requests.exceptions.ConnectionError:
         print("❌ 无法连接到API服务器。请确保后端服务正在运行。")
-        print("启动命令: cd backend && uvicorn main:app --reload")
+        print("启动命令: cd backend && uvicorn main:app --reload --port 8088")
     except Exception as e:
         print(f"❌ 测试失败: {e}")
     
