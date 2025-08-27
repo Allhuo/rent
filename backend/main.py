@@ -35,7 +35,7 @@ init_db()
 
 # 数据模型
 class PropertyInfo(BaseModel):
-    location: str  # 位置
+    location: Optional[str] = None  # 位置（已改为可选）
     current_price: int  # 当前报价
     property_type: str  # 房屋类型：一居室、两居室等
     area: Optional[int] = None  # 面积

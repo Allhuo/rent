@@ -23,45 +23,53 @@ class GeminiNegotiationService:
             return self._get_fallback_advice(property_info, user_budget)
     
     def _build_negotiation_prompt(self, property_info: Dict[str, Any], user_budget: int, urgency: str, additional_info: Optional[str]) -> str:
+        current_price = property_info.get('current_price', 0)
+        price_gap = current_price - user_budget
+        landlord_type = property_info.get('landlord_type', '未知')
+        
         return f"""
-        你是中国最专业的租房谈判专家，有10年经验，成功帮助过数千人砍价。请根据以下信息给出专业建议。
+        你是中国顶级的租房谈判专家，有15年实战经验。你需要分析每个具体案例，给出深度、个性化的建议。
 
-        **房屋信息**：
+        **核心情况分析**：
+        - 当前报价：{current_price}元/月
+        - 用户预算：{user_budget}元/月  
+        - 价格差距：{price_gap}元/月 ({price_gap/current_price*100:.1f}%)
+        - 房东类型：{landlord_type}
         - 位置：{property_info.get('location', '未知')}
-        - 当前报价：{property_info.get('current_price', 0)}元/月
-        - 房屋类型：{property_info.get('property_type', '未知')}
-        - 面积：{property_info.get('area', '未知')}平米
-        - 描述：{property_info.get('description', '无')}
-        - 房东类型：{property_info.get('landlord_type', '未知')}
-
-        **租客情况**：
-        - 预算：{user_budget}元/月
+        - 房屋：{property_info.get('property_type', '未知')}，{property_info.get('area', '未知')}平米
+        - 房屋描述：{property_info.get('description', '无')}
         - 紧急程度：{urgency}
-        - 补充信息：{additional_info or '无'}
+        - 用户补充：{additional_info or '无'}
 
-        请按以下JSON格式精确回复（不要有任何多余的文字）：
+        **深度分析要求**：
+        1. 价格分析：{price_gap}元的差距是否合理？在什么情况下可以砍到用户预算？
+        2. 房东心理：{landlord_type}类型的房东有什么特点？如何针对性沟通？
+        3. 房屋特征：根据"{property_info.get('description', '无')}"这个描述，房屋有什么优劣势？
+        4. 谈判时机：根据"{urgency}"程度，什么时候谈最合适？
+        5. 用户优势：从"{additional_info or '无'}"中发现用户有什么谈判筹码？
 
+        **回复格式（严格JSON）**：
         {{
-            "suggested_price": 建议的最终价格数字,
-            "negotiation_strategy": "具体的谈判策略，包含心理分析和时机把握",
+            "suggested_price": 具体价格数字,
+            "negotiation_strategy": "深度策略分析：包括谈判心理、时机选择、筹码运用、预期管理，至少200字",
             "talking_points": [
-                "具体话术1 - 开场白",
-                "具体话术2 - 价格谈判",
-                "具体话术3 - 条件交换",
-                "具体话术4 - 成交促进",
-                "具体话术5 - 备用方案"
+                "开场话术：如何建立信任和表达诚意",
+                "核心论点：基于房屋/市场/用户情况的具体论据",  
+                "价格锚点：如何巧妙提出目标价格",
+                "增值论述：强调用户作为租客的价值",
+                "成交催化：促成协议的关键话术"
             ],
-            "risk_assessment": "风险评估和注意事项",
-            "success_probability": 0.0到1.0之间的成功概率,
-            "market_insights": "该区域市场行情分析"
+            "risk_assessment": "具体风险点和应对策略，考虑房东可能的反应",
+            "success_probability": 基于实际情况的成功率评估,
+            "market_insights": "针对该区域和房屋类型的深度市场分析"
         }}
 
-        **要求**：
-        1. 建议价格要基于市场合理性，通常砍价幅度3-15%
-        2. 话术要符合中国人的沟通习惯，礼貌但有技巧
-        3. 考虑房东心理：个人房东vs中介的不同应对策略
-        4. 成功概率要实事求是
-        5. 只返回JSON，不要任何解释文字
+        **关键要求**：
+        - 每条建议都要结合具体情况，不要模板化
+        - 话术要真实可用，符合中国租房市场习惯
+        - 分析要深入，体现专业水准
+        - 成功概率要基于{price_gap}元差距的现实性
+        - 如果差距过大（>20%），要给出阶段性策略
         """
     
     def _parse_response(self, response_text: str) -> Dict[str, Any]:

@@ -3,14 +3,23 @@ import axios from 'axios';
 
 function App() {
   const [formData, setFormData] = useState({
-    location: '',
+    // 基础房屋信息
     current_price: '',
     property_type: '一居室',
     area: '',
     description: '',
     landlord_type: '个人房东',
+    
+    // 用户情况  
     user_budget: '',
     urgency: 'normal',
+    
+    // 关键信息 - 替代具体位置
+    similar_properties: '', // 同类房源价格范围
+    rental_duration: '',   // 已居住时长
+    lease_status: '',      // 租约状态
+    user_advantages: '',   // 用户优势
+    
     additional_info: ''
   });
 
@@ -31,9 +40,18 @@ function App() {
     setError('');
 
     try {
+      // 构建更丰富的上下文信息
+      const contextInfo = [
+        formData.similar_properties && `同类房源价格：${formData.similar_properties}`,
+        formData.rental_duration && `居住时长：${formData.rental_duration}`,
+        formData.lease_status && `租约状态：${formData.lease_status}`, 
+        formData.user_advantages && `用户优势：${formData.user_advantages}`,
+        formData.additional_info && `补充说明：${formData.additional_info}`
+      ].filter(Boolean).join('；');
+
       const requestData = {
         property_info: {
-          location: formData.location,
+          location: "通过用户提供的对比信息推断", // 不再要求具体位置
           current_price: parseInt(formData.current_price),
           property_type: formData.property_type,
           area: formData.area ? parseInt(formData.area) : null,
@@ -42,7 +60,7 @@ function App() {
         },
         user_budget: parseInt(formData.user_budget),
         urgency: formData.urgency,
-        additional_info: formData.additional_info || null
+        additional_info: contextInfo || null
       };
 
       const response = await axios.post('/negotiate', requestData);
@@ -106,29 +124,23 @@ function App() {
             🏠 AI租房谈判助手
           </h1>
           <p className="text-gray-600">
-            让AI帮你制定专业的砍价策略，省钱租到心仪房屋
+            基于市场对比和个人优势，制定专业砍价策略
           </p>
+          <div className="mt-3 text-sm text-blue-600 bg-blue-50 inline-block px-4 py-2 rounded-md">
+            ⚡ 重点：提供价格对比信息 = 获得针对性建议
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* 表单区域 */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold mb-6">填写房屋信息</h2>
+            <h2 className="text-2xl font-semibold mb-6">填写谈判信息</h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  房屋位置 *
-                </label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例：北京朝阳区三里屯"
-                  required
-                />
+              <div className="bg-blue-50 border border-blue-200 p-3 rounded-md mb-4">
+                <p className="text-blue-800 text-sm">
+                  💡 <strong>提示</strong>：我们不需要具体位置，重点是提供市场对比信息和您的谈判筹码
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -221,24 +233,87 @@ function App() {
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  rows="3"
+                  rows="2"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="例：精装修，家具家电齐全，临近地铁..."
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  补充信息
-                </label>
-                <textarea
-                  name="additional_info"
-                  value={formData.additional_info}
-                  onChange={handleInputChange}
-                  rows="2"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例：希望长期租住，爱护房屋..."
-                />
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">🎯 关键谈判信息</h3>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="text-red-500">*</span> 同类房源价格对比
+                  </label>
+                  <textarea
+                    name="similar_properties"
+                    value={formData.similar_properties}
+                    onChange={handleInputChange}
+                    rows="2"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="例：同小区/同户型房源2600-2800元，某某房源2500元还带客厅空调"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">这是砍价的核心依据！请提供具体的价格对比</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    居住时长/租约状态
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      name="rental_duration"
+                      value={formData.rental_duration}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="例：已住1年9个月"
+                    />
+                    <select
+                      name="lease_status"
+                      value={formData.lease_status}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">选择租约状态</option>
+                      <option value="即将到期">即将到期（1个月内）</option>
+                      <option value="已到期">已到期</option>
+                      <option value="续租谈判">准备续租</option>
+                      <option value="合约中期">合约中期</option>
+                      <option value="月付">月付/无固定合约</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    您的谈判优势
+                  </label>
+                  <textarea
+                    name="user_advantages"
+                    value={formData.user_advantages}
+                    onChange={handleInputChange}
+                    rows="2"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="例：按时交租、爱护房屋、愿意长期租住、可以立即续签等"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    其他补充信息
+                  </label>
+                  <textarea
+                    name="additional_info"
+                    value={formData.additional_info}
+                    onChange={handleInputChange}
+                    rows="2"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="例：特殊情况说明、房东性格特点、过往沟通情况等"
+                  />
+                </div>
               </div>
 
               <button
@@ -409,7 +484,8 @@ function App() {
         </div>
 
         <footer className="text-center text-gray-500 mt-12">
-          <p>💡 提示：谈判时保持礼貌和耐心，合理砍价更容易成功</p>
+          <p>💡 提示：有具体的价格对比数据，AI建议会更准确更实用</p>
+          <p className="text-xs mt-1">基于真实市场信息的谈判成功率远高于盲目砍价</p>
         </footer>
       </div>
     </div>
