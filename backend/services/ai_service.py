@@ -7,7 +7,8 @@ import os
 class GeminiNegotiationService:
     def __init__(self):
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = genai.GenerativeModel('gemini-pro')
+        # 使用最新的Gemini 2.5 Pro模型，性能最强
+        self.model = genai.GenerativeModel('models/gemini-2.5-pro')
     
     async def get_negotiation_advice(self, property_info: Dict[str, Any], user_budget: int, urgency: str = "normal", additional_info: Optional[str] = None) -> Dict[str, Any]:
         """
