@@ -47,6 +47,7 @@ class NegotiationRequest(BaseModel):
     user_budget: int  # 用户预算
     urgency: str = "normal"  # 紧急程度：urgent/normal/flexible
     additional_info: Optional[str] = None  # 额外信息
+    model_name: str = "gemini-1.5-pro"  # AI模型选择
 
 class NegotiationAdvice(BaseModel):
     session_id: int  # 会话ID
@@ -71,6 +72,23 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+@app.get("/models")
+async def get_available_models():
+    """
+    获取可用的AI模型列表
+    """
+    return {
+        "models": ai_service.available_models,
+        "descriptions": {
+            "gemini-2.5-pro": "最新最强的Gemini模型",
+            "gemini-2.5-flash": "Gemini 2.5 快速版",
+            "gemini-2.0-flash": "Gemini 2.0 快速版", 
+            "gemini-1.5-pro": "稳定的Gemini 1.5 Pro",
+            "gemini-1.5-flash": "Gemini 1.5 快速版",
+            "gemini-pro": "基础版本（兜底）"
+        }
+    }
 
 @app.post("/negotiate", response_model=NegotiationAdvice)
 async def get_negotiation_advice(request: NegotiationRequest, db: Session = Depends(get_db)):
@@ -109,7 +127,8 @@ async def get_negotiation_advice(request: NegotiationRequest, db: Session = Depe
             property_dict,
             request.user_budget,
             request.urgency,
-            request.additional_info
+            request.additional_info,
+            request.model_name
         )
         
         # 更新会话记录，保存AI建议
